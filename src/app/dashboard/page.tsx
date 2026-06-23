@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { listUserShops, requireUser } from "@/lib/rbac";
 import { SignOutButton } from "./sign-out-button";
 
@@ -13,9 +14,7 @@ export default async function DashboardPage() {
             Shop.WitUS
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">Your shops</h1>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-            Signed in as {user.email}
-          </p>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">Signed in as {user.email}</p>
         </div>
         <SignOutButton />
       </header>
@@ -23,14 +22,14 @@ export default async function DashboardPage() {
       <section aria-label="Shops" className="mt-8 flex flex-col gap-3">
         {shops.length === 0 ? (
           <p className="rounded-lg border border-black/10 p-5 text-zinc-600 dark:border-white/15 dark:text-zinc-300">
-            No shop yet — it&apos;s created automatically on first sign-in. If you&apos;re seeing
-            this, refresh in a moment.
+            No shop yet — it&apos;s created automatically on first sign-in. Refresh in a moment.
           </p>
         ) : (
           shops.map((shop) => (
-            <div
+            <Link
               key={shop.shopId}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-black/10 p-5 dark:border-white/15"
+              href={`/dashboard/${shop.shopId}`}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-black/10 p-5 hover:bg-black/[0.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:border-white/15 dark:hover:bg-white/[0.04]"
             >
               <div>
                 <h2 className="text-lg font-semibold">{shop.name}</h2>
@@ -38,10 +37,10 @@ export default async function DashboardPage() {
                   <span className="font-mono">/{shop.slug}</span> · {shop.role}
                 </p>
               </div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                Catalog &amp; embed coming in Phase 2–3
-              </p>
-            </div>
+              <span aria-hidden="true" className="text-sm text-zinc-400">
+                Manage →
+              </span>
+            </Link>
           ))
         )}
       </section>

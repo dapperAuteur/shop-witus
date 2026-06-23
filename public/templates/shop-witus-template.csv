@@ -1,0 +1,3 @@
+name,buy_url,price_cents,currency,image_url,alt_text,sku,collection,sort_order
+Hand-thrown ceramic mug,https://shop.example.com/products/mug,2499,USD,https://shop.example.com/img/mug.jpg,Speckled white ceramic mug,MUG-01,Best Sellers,10
+Trail map poster,https://shop.example.com/products/map,1800,USD,,Framed trail map art print,MAP-01,Best Sellers,20
