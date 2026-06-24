@@ -48,12 +48,20 @@ export default async function ShopPage({ params }: { params: Promise<{ shopId: s
           <h1 className="text-2xl font-semibold tracking-tight">{shop.name}</h1>
           <p className="font-mono text-sm text-zinc-500 dark:text-zinc-400">/{shop.slug}</p>
         </div>
-        <Link
-          href={`/dashboard/${shopId}/import`}
-          className="inline-flex min-h-12 items-center justify-center rounded-md bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
-        >
-          Import CSV
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href={`/dashboard/${shopId}/embed`}
+            className="inline-flex min-h-12 items-center justify-center rounded-md border border-black/15 px-5 text-sm font-semibold hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:border-white/20 dark:hover:bg-white/5"
+          >
+            Embed
+          </Link>
+          <Link
+            href={`/dashboard/${shopId}/import`}
+            className="inline-flex min-h-12 items-center justify-center rounded-md bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+          >
+            Import CSV
+          </Link>
+        </div>
       </header>
 
       <section aria-labelledby="collections-h" className="mt-10">
