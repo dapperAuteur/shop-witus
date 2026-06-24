@@ -108,3 +108,11 @@ export async function disconnectWix(formData: FormData): Promise<Result<null>> {
   revalidatePath(`/dashboard/${parsed.data.shopId}`);
   return ok(null);
 }
+
+// Void-returning wrappers for direct <form action={…}> usage on the dashboard.
+export async function importFromWixAction(formData: FormData): Promise<void> {
+  await importFromWix(formData);
+}
+export async function disconnectWixAction(formData: FormData): Promise<void> {
+  await disconnectWix(formData);
+}

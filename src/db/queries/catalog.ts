@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db, schema } from "@/db/client";
 
 export type Shop = typeof schema.shops.$inferSelect;
@@ -29,4 +29,18 @@ export async function listProducts(shopId: string): Promise<Product[]> {
     .from(schema.products)
     .where(eq(schema.products.shopId, shopId))
     .orderBy(asc(schema.products.sortOrder), asc(schema.products.createdAt));
+}
+
+export async function getWixConnection(shopId: string) {
+  const [row] = await db
+    .select()
+    .from(schema.storeConnections)
+    .where(
+      and(
+        eq(schema.storeConnections.shopId, shopId),
+        eq(schema.storeConnections.platform, "wix"),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
 }

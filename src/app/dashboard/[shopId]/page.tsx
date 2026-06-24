@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getShop, listCollections, listProducts } from "@/db/queries/catalog";
+import { getShop, getWixConnection, listCollections, listProducts } from "@/db/queries/catalog";
 import {
   createCollectionAction,
   deleteProductAction,
   setCollectionStatusAction,
   setProductStatusAction,
 } from "@/lib/actions/catalog";
+import { disconnectWixAction, importFromWixAction } from "@/lib/actions/connectors";
+import { hasWix } from "@/lib/env";
 import { requireShopRole } from "@/lib/rbac";
 
 function formatPrice(cents: number | null, currency: string | null): string | null {
@@ -24,15 +26,23 @@ function formatPrice(cents: number | null, currency: string | null): string | nu
 const btn =
   "inline-flex min-h-11 items-center justify-center rounded-md border border-black/15 px-3 text-sm font-medium hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:border-white/20 dark:hover:bg-white/5";
 
-export default async function ShopPage({ params }: { params: Promise<{ shopId: string }> }) {
+export default async function ShopPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ shopId: string }>;
+  searchParams: Promise<{ wix?: string }>;
+}) {
   const { shopId } = await params;
+  const { wix } = await searchParams;
   await requireShopRole(shopId, "staff");
   const shop = await getShop(shopId);
   if (!shop) notFound();
 
-  const [collections, products] = await Promise.all([
+  const [collections, products, wixConn] = await Promise.all([
     listCollections(shopId),
     listProducts(shopId),
+    hasWix ? getWixConnection(shopId) : Promise.resolve(null),
   ]);
 
   // Active product count per collection — drives the publish gate below.
@@ -71,6 +81,71 @@ export default async function ShopPage({ params }: { params: Promise<{ shopId: s
           </Link>
         </div>
       </header>
+
+      {wix && (
+        <p
+          role="status"
+          className={`mt-4 rounded-md border p-3 text-sm ${
+            wix === "connected"
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"
+              : "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-200"
+          }`}
+        >
+          {wix === "connected"
+            ? "Wix store connected. Click “Import from Wix” to pull your products."
+            : "We couldn’t finish connecting your Wix store. Please try again."}
+        </p>
+      )}
+
+      {hasWix && (
+        <section aria-labelledby="store-h" className="mt-8">
+          <h2 id="store-h" className="text-lg font-semibold">
+            Connect a store
+          </h2>
+          {wixConn && wixConn.status === "connected" ? (
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-black/10 p-4 dark:border-white/15">
+              <div>
+                <span className="font-medium">Wix</span>{" "}
+                <span className="rounded bg-emerald-500/15 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                  connected
+                </span>
+                {wixConn.lastSyncedAt && (
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    Last import: {wixConn.lastSyncedAt.toLocaleDateString()}
+                  </p>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <form action={importFromWixAction}>
+                  <input type="hidden" name="shopId" value={shopId} />
+                  <button type="submit" className={btn}>
+                    Import from Wix
+                  </button>
+                </form>
+                <form action={disconnectWixAction}>
+                  <input type="hidden" name="shopId" value={shopId} />
+                  <button
+                    type="submit"
+                    className="inline-flex min-h-11 items-center justify-center rounded-md border border-black/15 px-3 text-sm font-medium text-red-600 hover:bg-red-500/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:border-white/20 dark:text-red-400"
+                  >
+                    Disconnect
+                  </button>
+                </form>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-3 rounded-lg border border-black/10 p-4 text-sm text-zinc-600 dark:border-white/15 dark:text-zinc-300">
+              <a
+                href={`/api/connect/wix/start?shopId=${shopId}`}
+                className="font-medium text-emerald-700 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:text-emerald-300"
+              >
+                Connect your Wix store
+              </a>{" "}
+              to import your best sellers.
+            </p>
+          )}
+        </section>
+      )}
 
       <section aria-labelledby="collections-h" className="mt-10">
         <h2 id="collections-h" className="text-lg font-semibold">
