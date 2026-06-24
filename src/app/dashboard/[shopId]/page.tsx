@@ -35,6 +35,14 @@ export default async function ShopPage({ params }: { params: Promise<{ shopId: s
     listProducts(shopId),
   ]);
 
+  // Active product count per collection — drives the publish gate below.
+  const activeByCollection = new Map<string, number>();
+  for (const p of products) {
+    if (p.status === "active" && p.collectionId) {
+      activeByCollection.set(p.collectionId, (activeByCollection.get(p.collectionId) ?? 0) + 1);
+    }
+  }
+
   return (
     <main id="main" className="mx-auto w-full max-w-4xl px-4 py-10">
       <Link
@@ -108,18 +116,24 @@ export default async function ShopPage({ params }: { params: Promise<{ shopId: s
                   </span>
                   <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">/{c.slug}</span>
                 </div>
-                <form action={setCollectionStatusAction}>
-                  <input type="hidden" name="shopId" value={shopId} />
-                  <input type="hidden" name="collectionId" value={c.id} />
-                  <input
-                    type="hidden"
-                    name="status"
-                    value={c.status === "published" ? "draft" : "published"}
-                  />
-                  <button type="submit" className={btn}>
-                    {c.status === "published" ? "Unpublish" : "Publish"}
-                  </button>
-                </form>
+                {c.status === "published" || (activeByCollection.get(c.id) ?? 0) > 0 ? (
+                  <form action={setCollectionStatusAction}>
+                    <input type="hidden" name="shopId" value={shopId} />
+                    <input type="hidden" name="collectionId" value={c.id} />
+                    <input
+                      type="hidden"
+                      name="status"
+                      value={c.status === "published" ? "draft" : "published"}
+                    />
+                    <button type="submit" className={btn}>
+                      {c.status === "published" ? "Unpublish" : "Publish"}
+                    </button>
+                  </form>
+                ) : (
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Add an active product to publish
+                  </span>
+                )}
               </li>
             ))
           )}

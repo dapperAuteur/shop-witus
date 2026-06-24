@@ -162,6 +162,24 @@ export async function setCollectionStatus(formData: FormData): Promise<Result<nu
   if (!parsed.success) return err("Invalid request.", "invalid_input");
   await requireShopRole(parsed.data.shopId, "manager");
 
+  // Publish gate: a collection with no active products is dead UI in the
+  // widget, so block publishing it (the analogue of Wanderlearn's no_lessons).
+  if (parsed.data.status === "published") {
+    const [row] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.products)
+      .where(
+        and(
+          eq(schema.products.shopId, parsed.data.shopId),
+          eq(schema.products.collectionId, parsed.data.collectionId),
+          eq(schema.products.status, "active"),
+        ),
+      );
+    if (!row || row.count === 0) {
+      return err("Add at least one active product before publishing.", "no_active_products");
+    }
+  }
+
   await db
     .update(schema.collections)
     .set({ status: parsed.data.status, updatedAt: new Date() })
