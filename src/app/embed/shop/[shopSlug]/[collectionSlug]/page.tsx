@@ -1,25 +1,9 @@
 import { notFound } from "next/navigation";
 import { getEmbedCollection } from "@/db/queries/public";
+import { readableOn } from "@/lib/contrast";
 import { EmbedResizer } from "./embed-resizer";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
-
-// Pick white or near-black text for the best contrast on the merchant's accent
-// (WCAG AA). The default accent #10b981 with white text is only ~2.5:1, so the
-// Buy button picks its text color from the accent's luminance.
-function readableOn(hex: string): string {
-  const m = /^#?([0-9a-fA-F]{6})$/.exec(hex);
-  if (!m) return "#ffffff";
-  const n = parseInt(m[1], 16);
-  const lin = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((c) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-  });
-  const L = 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
-  const whiteContrast = 1.05 / (L + 0.05);
-  const blackContrast = (L + 0.05) / 0.05;
-  return whiteContrast >= blackContrast ? "#ffffff" : "#111827";
-}
 
 function formatPrice(cents: number | null, currency: string | null): string | null {
   if (cents == null) return null;
