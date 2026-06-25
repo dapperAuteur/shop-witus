@@ -43,3 +43,4 @@ Dev runs on **port 3030** (3000 is held by wanderlearn-app — BAM runs apps sid
 Read [STYLE_GUIDE.md](./STYLE_GUIDE.md) before writing code, and [AGENTS.md](./AGENTS.md) (Next 16 has breaking changes — consult `node_modules/next/dist/docs/`). Branch per change; BAM merges; migrations get a `plans/user-tasks/` reminder before merge.
 
 Operated by B4C LLC / AwesomeWebStore.com.
+# shop-witus
