@@ -70,6 +70,11 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
+                <Link href="/help" className={linkClasses}>
+                  Help &amp; FAQ
+                </Link>
+              </li>
+              <li>
                 <Link href="/sign-in" className={linkClasses}>
                   Sign in
                 </Link>

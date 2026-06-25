@@ -16,7 +16,15 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Your shops</h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">Signed in as {user.email}</p>
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-2">
+          <Link
+            href="/help"
+            className="inline-flex min-h-11 items-center justify-center rounded-md px-3 text-sm font-medium text-zinc-600 hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:text-zinc-300 dark:hover:bg-white/5"
+          >
+            Help
+          </Link>
+          <SignOutButton />
+        </div>
       </header>
 
       <section aria-label="Shops" className="mt-8 flex flex-col gap-3">
