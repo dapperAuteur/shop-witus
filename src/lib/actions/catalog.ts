@@ -2,9 +2,11 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { db, schema } from "@/db/client";
 import { buildLocalKey, parseProductsCsv } from "@/lib/csv";
+import { notifyCollectionPublished, notifyProductsImported } from "@/lib/ecosystem-events";
 import { err, ok, type Result } from "@/lib/result";
 import { requireShopRole } from "@/lib/rbac";
 import { slugify } from "@/lib/slug";
@@ -118,6 +120,7 @@ export async function importProductsCsv(
       },
     });
 
+  after(() => notifyProductsImported({ shopId, count: values.length, source: "csv" }));
   revalidateShop(shopId);
   return ok({ imported: values.length, skipped: errors });
 }
@@ -189,6 +192,14 @@ export async function setCollectionStatus(formData: FormData): Promise<Result<nu
         eq(schema.collections.shopId, parsed.data.shopId),
       ),
     );
+  if (parsed.data.status === "published") {
+    after(() =>
+      notifyCollectionPublished({
+        shopId: parsed.data.shopId,
+        collectionId: parsed.data.collectionId,
+      }),
+    );
+  }
   revalidateShop(parsed.data.shopId);
   return ok(null);
 }
@@ -260,4 +271,70 @@ export async function setProductStatusAction(formData: FormData): Promise<void> 
 }
 export async function deleteProductAction(formData: FormData): Promise<void> {
   await deleteProduct(formData);
+}
+
+const createProductSchema = z.object({
+  shopId: z.string().uuid(),
+  name: z.string().trim().min(1).max(200),
+  buyUrl: z.string().trim().url().max(2048),
+  altText: z.string().trim().min(1).max(300),
+  priceCents: z.coerce.number().int().min(0).optional(),
+  currency: z.string().trim().length(3).optional(),
+  imageUrl: z.string().trim().url().max(2048).optional(),
+  collectionId: z.string().uuid().optional(),
+});
+
+// Manual single-product add (for merchants without a CSV or store connection).
+export async function createProduct(formData: FormData): Promise<Result<{ id: string }>> {
+  const str = (k: string): string | undefined => {
+    const v = formData.get(k);
+    return typeof v === "string" && v.trim() !== "" ? v.trim() : undefined;
+  };
+  const parsed = createProductSchema.safeParse({
+    shopId: str("shopId"),
+    name: str("name"),
+    buyUrl: str("buyUrl"),
+    altText: str("altText"),
+    priceCents: str("priceCents"),
+    currency: str("currency"),
+    imageUrl: str("imageUrl"),
+    collectionId: str("collectionId"),
+  });
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    return err(`${first.path.join(".") || "input"}: ${first.message}`, "invalid_input");
+  }
+  const d = parsed.data;
+  await requireShopRole(d.shopId, "manager");
+
+  if (d.collectionId) {
+    const [c] = await db
+      .select({ id: schema.collections.id })
+      .from(schema.collections)
+      .where(and(eq(schema.collections.id, d.collectionId), eq(schema.collections.shopId, d.shopId)))
+      .limit(1);
+    if (!c) return err("Collection not found.", "invalid_collection");
+  }
+
+  const localKey = `${slugify(d.name)}-${crypto.randomUUID().slice(0, 6)}`;
+  const [row] = await db
+    .insert(schema.products)
+    .values({
+      shopId: d.shopId,
+      collectionId: d.collectionId ?? null,
+      localKey,
+      name: d.name,
+      buyUrl: d.buyUrl,
+      priceCents: d.priceCents ?? null,
+      currency: d.currency ? d.currency.toUpperCase() : d.priceCents != null ? "USD" : null,
+      imageUrl: d.imageUrl ?? null,
+      altText: d.altText,
+      source: "manual",
+      sortOrder: 0,
+    })
+    .returning({ id: schema.products.id });
+  if (!row) return err("Failed to add product.", "db_error");
+
+  revalidateShop(d.shopId);
+  return ok({ id: row.id });
 }

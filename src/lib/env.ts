@@ -18,6 +18,15 @@ const schema = z.object({
   WIX_CLIENT_ID: z.string().optional(),
   WIX_CLIENT_SECRET: z.string().optional(),
   WIX_REDIRECT_URI: z.string().url().optional(),
+  // WitUS ecosystem integrations (all optional; features no-op until set).
+  OUTBOX_INGEST_URL: z.string().url().optional(),
+  OUTBOX_SOURCE_SLUG: z.string().optional(),
+  OUTBOX_INGEST_SECRET: z.string().optional(),
+  INBOX_INGEST_URL: z.string().url().optional(),
+  INBOX_SOURCE_SLUG: z.string().optional(),
+  INBOX_INGEST_SECRET: z.string().optional(),
+  NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
+  NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
 });
 
 const isProd = process.env.NODE_ENV === "production";
@@ -52,6 +61,14 @@ const input = {
   WIX_CLIENT_ID: process.env.WIX_CLIENT_ID,
   WIX_CLIENT_SECRET: process.env.WIX_CLIENT_SECRET,
   WIX_REDIRECT_URI: process.env.WIX_REDIRECT_URI,
+  OUTBOX_INGEST_URL: process.env.OUTBOX_INGEST_URL,
+  OUTBOX_SOURCE_SLUG: process.env.OUTBOX_SOURCE_SLUG,
+  OUTBOX_INGEST_SECRET: process.env.OUTBOX_INGEST_SECRET,
+  INBOX_INGEST_URL: process.env.INBOX_INGEST_URL,
+  INBOX_SOURCE_SLUG: process.env.INBOX_SOURCE_SLUG,
+  INBOX_INGEST_SECRET: process.env.INBOX_INGEST_SECRET,
+  NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+  NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
 };
 
 const parsed = schema.safeParse(input);
@@ -68,3 +85,6 @@ export const hasCloudinary = Boolean(
   env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET,
 );
 export const hasWix = Boolean(env.WIX_CLIENT_ID && env.WIX_CLIENT_SECRET);
+export const hasOutbox = Boolean(env.OUTBOX_INGEST_URL && env.OUTBOX_INGEST_SECRET);
+export const hasInbox = Boolean(env.INBOX_INGEST_URL && env.INBOX_INGEST_SECRET);
+export const hasPostHog = Boolean(env.NEXT_PUBLIC_POSTHOG_KEY);

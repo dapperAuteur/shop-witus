@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db/client";
+import { notifyMerchantSignup } from "./ecosystem-events";
 
 function slugify(input: string): string {
   return (
@@ -39,4 +40,7 @@ export async function createShopForNewUser(userId: string, email: string): Promi
   await db
     .insert(schema.shopUserRoles)
     .values({ shopId: shop.id, userId, role: "owner" });
+
+  // Fire-and-forget ecosystem event (no-op until inbox creds are set).
+  void notifyMerchantSignup({ email, shopId: shop.id, shopSlug: slug });
 }

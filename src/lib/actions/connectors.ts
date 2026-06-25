@@ -2,8 +2,10 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { db, schema } from "@/db/client";
+import { notifyProductsImported } from "@/lib/ecosystem-events";
 import { err, ok, type Result } from "@/lib/result";
 import { requireShopRole } from "@/lib/rbac";
 import { slugify } from "@/lib/slug";
@@ -88,6 +90,7 @@ export async function importFromWix(
     .set({ lastSyncedAt: new Date(), updatedAt: new Date() })
     .where(eq(schema.storeConnections.id, conn.id));
 
+  after(() => notifyProductsImported({ shopId, count: values.length, source: "wix" }));
   revalidatePath(`/dashboard/${shopId}`);
   return ok({ imported: values.length });
 }
