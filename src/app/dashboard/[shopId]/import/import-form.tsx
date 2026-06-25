@@ -24,14 +24,14 @@ export function ImportForm({ shopId }: { shopId: string }) {
           type="file"
           accept=".csv,text/csv"
           required
-          className="min-h-11 rounded-md border border-black/15 bg-transparent px-3 py-2 text-base file:mr-3 file:rounded file:border-0 file:bg-emerald-600 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:border-white/20"
+          className="min-h-11 rounded-md border border-black/15 bg-transparent px-3 py-2 text-base file:mr-3 file:rounded file:border-0 file:bg-emerald-700 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:border-white/20"
         />
       </div>
 
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex min-h-12 w-fit items-center justify-center rounded-md bg-emerald-600 px-6 text-base font-semibold text-white hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current disabled:opacity-60"
+        className="inline-flex min-h-12 w-fit items-center justify-center rounded-md bg-emerald-700 px-6 text-base font-semibold text-white hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current disabled:opacity-60"
       >
         {pending ? "Importing…" : "Import"}
       </button>

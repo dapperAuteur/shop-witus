@@ -75,7 +75,7 @@ export default async function ShopPage({
           </Link>
           <Link
             href={`/dashboard/${shopId}/import`}
-            className="inline-flex min-h-12 items-center justify-center rounded-md bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+            className="inline-flex min-h-12 items-center justify-center rounded-md bg-emerald-700 px-5 text-sm font-semibold text-white hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
           >
             Import CSV
           </Link>
