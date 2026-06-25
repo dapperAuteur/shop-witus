@@ -2,9 +2,11 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { db, schema } from "@/db/client";
 import { buildLocalKey, parseProductsCsv } from "@/lib/csv";
+import { notifyCollectionPublished, notifyProductsImported } from "@/lib/ecosystem-events";
 import { err, ok, type Result } from "@/lib/result";
 import { requireShopRole } from "@/lib/rbac";
 import { slugify } from "@/lib/slug";
@@ -118,6 +120,7 @@ export async function importProductsCsv(
       },
     });
 
+  after(() => notifyProductsImported({ shopId, count: values.length, source: "csv" }));
   revalidateShop(shopId);
   return ok({ imported: values.length, skipped: errors });
 }
@@ -189,6 +192,14 @@ export async function setCollectionStatus(formData: FormData): Promise<Result<nu
         eq(schema.collections.shopId, parsed.data.shopId),
       ),
     );
+  if (parsed.data.status === "published") {
+    after(() =>
+      notifyCollectionPublished({
+        shopId: parsed.data.shopId,
+        collectionId: parsed.data.collectionId,
+      }),
+    );
+  }
   revalidateShop(parsed.data.shopId);
   return ok(null);
 }
