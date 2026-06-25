@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-// Best-effort rate limit for the public embed surface. NOTE: serverless
-// instances do not share memory, so this caps abuse per-instance only —
-// back it with Vercel KV / Upstash for real protection (Phase 4 fast-follow).
+// Next 16 renamed "middleware" → "proxy" (same functionality). Best-effort
+// rate limit for the public embed surface. NOTE: serverless instances do not
+// share memory, so this caps abuse per-instance only — back it with Vercel KV
+// / Upstash for real protection (see plans/future/01).
 const WINDOW_MS = 60_000;
 const MAX_PER_WINDOW = 120;
 
 const hits = new Map<string, { count: number; reset: number }>();
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     req.headers.get("x-real-ip") ||
