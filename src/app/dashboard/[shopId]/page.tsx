@@ -10,6 +10,7 @@ import {
 import { disconnectWixAction, importFromWixAction } from "@/lib/actions/connectors";
 import { hasWix } from "@/lib/env";
 import { requireShopRole } from "@/lib/rbac";
+import { AddProductForm } from "./add-product-form";
 
 function formatPrice(cents: number | null, currency: string | null): string | null {
   if (cents == null) return null;
@@ -219,6 +220,17 @@ export default async function ShopPage({
         <h2 id="products-h" className="text-lg font-semibold">
           Products ({products.length})
         </h2>
+        <details className="mt-3 rounded-lg border border-black/10 p-4 dark:border-white/15">
+          <summary className="cursor-pointer text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+            Add a product manually
+          </summary>
+          <div className="mt-4">
+            <AddProductForm
+              shopId={shopId}
+              collections={collections.map((c) => ({ id: c.id, name: c.name }))}
+            />
+          </div>
+        </details>
         {products.length === 0 ? (
           <p className="mt-3 rounded-lg border border-black/10 p-4 text-sm text-zinc-600 dark:border-white/15 dark:text-zinc-300">
             No products yet.{" "}
