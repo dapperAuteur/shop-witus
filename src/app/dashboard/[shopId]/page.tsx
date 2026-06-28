@@ -68,6 +68,15 @@ export default async function ShopPage({
           <p className="font-mono text-sm text-zinc-500 dark:text-zinc-400">/{shop.slug}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <a
+            href={`/s/${shop.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-12 items-center justify-center rounded-md border border-black/15 px-5 text-sm font-semibold hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:border-white/20 dark:hover:bg-white/5"
+          >
+            View shop<span aria-hidden="true"> ↗</span>
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
           <Link
             href={`/dashboard/${shopId}/embed`}
             className="inline-flex min-h-12 items-center justify-center rounded-md border border-black/15 px-5 text-sm font-semibold hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:border-white/20 dark:hover:bg-white/5"
