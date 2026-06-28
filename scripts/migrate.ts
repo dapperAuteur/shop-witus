@@ -5,7 +5,10 @@ import ws from "ws";
 
 neonConfig.webSocketConstructor = ws;
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString =
+  process.env.DATABASE_URL ??
+  process.env.STORAGE_DATABASE_URL ??
+  process.env.STORAGE_POSTGRES_URL;
 if (!connectionString || connectionString.includes("placeholder")) {
   const isProd = process.env.npm_lifecycle_event === "db:migrate:prod";
   const hint = isProd
