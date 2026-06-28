@@ -45,7 +45,10 @@ const input = {
   NODE_ENV: process.env.NODE_ENV,
   APP_URL: process.env.APP_URL,
   DATABASE_URL:
-    process.env.DATABASE_URL ?? (allowDevDefaults ? devPlaceholders.DATABASE_URL : undefined),
+    process.env.DATABASE_URL ??
+    process.env.STORAGE_DATABASE_URL ??
+    process.env.STORAGE_POSTGRES_URL ??
+    (allowDevDefaults ? devPlaceholders.DATABASE_URL : undefined),
   BETTER_AUTH_SECRET:
     process.env.BETTER_AUTH_SECRET ?? (allowDevDefaults ? devPlaceholders.BETTER_AUTH_SECRET : undefined),
   BETTER_AUTH_URL:

@@ -2,6 +2,8 @@ import { defineConfig } from "drizzle-kit";
 
 const databaseUrl =
   process.env.DATABASE_URL ??
+  process.env.STORAGE_DATABASE_URL ??
+  process.env.STORAGE_POSTGRES_URL ??
   "postgres://placeholder:placeholder@localhost/shop_witus_dev";
 
 export default defineConfig({

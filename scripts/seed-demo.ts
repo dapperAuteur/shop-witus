@@ -11,7 +11,10 @@ import { slugify } from "../src/lib/slug";
 
 neonConfig.webSocketConstructor = ws;
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString =
+  process.env.DATABASE_URL ??
+  process.env.STORAGE_DATABASE_URL ??
+  process.env.STORAGE_POSTGRES_URL;
 if (!connectionString || connectionString.includes("placeholder")) {
   console.error("DATABASE_URL is not set. Put a real Neon string in .env.local.");
   process.exit(1);
