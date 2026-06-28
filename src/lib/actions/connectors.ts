@@ -92,6 +92,7 @@ export async function importFromWix(
 
   after(() => notifyProductsImported({ shopId, count: values.length, source: "wix" }));
   revalidatePath(`/dashboard/${shopId}`);
+  revalidatePath("/s/[shopSlug]", "page");
   return ok({ imported: values.length });
 }
 

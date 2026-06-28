@@ -4,14 +4,29 @@ import { getPublicShopPage } from "@/db/queries/public";
 import { readableOn } from "@/lib/contrast";
 import { formatPrice } from "@/lib/format";
 
-// Static metadata so the <title> lands in <head> at SSR (valid HTML, pa11y
-// clean). Async generateMetadata streams the title into <body> for dynamic
-// routes — fine for browsers but invalid + breaks OG for non-JS crawlers. The
-// shop name is the visible <h1>; per-shop <title>/OG is a backlog item.
-export const metadata: Metadata = {
-  title: "Shop — Shop.WitUS",
-  description: "Browse and buy. Powered by Shop.WitUS.",
-};
+// ISR: statically generate shop pages on demand and revalidate every 5 min, so
+// async generateMetadata renders the per-shop <title>/OG into <head>. (The
+// dynamic-SSR path streams metadata into <body> — invalid + breaks crawler OG.)
+export const revalidate = 300;
+
+export function generateStaticParams(): { shopSlug: string }[] {
+  return [];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ shopSlug: string }>;
+}): Promise<Metadata> {
+  const { shopSlug } = await params;
+  const data = await getPublicShopPage(shopSlug);
+  if (!data) return { title: "Shop not found — Shop.WitUS" };
+  return {
+    title: `${data.shop.name} — Shop.WitUS`,
+    description: `Browse ${data.shop.name} and shop their picks.`,
+    openGraph: { title: data.shop.name, description: `Shop ${data.shop.name}.`, type: "website" },
+  };
+}
 
 export default async function PublicShopPage({
   params,

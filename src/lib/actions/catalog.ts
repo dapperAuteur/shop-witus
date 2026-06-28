@@ -16,6 +16,9 @@ const MAX_CSV_BYTES = 1_000_000;
 function revalidateShop(shopId: string) {
   revalidatePath(`/dashboard/${shopId}`);
   revalidatePath(`/dashboard/${shopId}/import`);
+  // Refresh the public shop pages so catalog changes go live immediately
+  // (the /s route is ISR with a 5-min fallback).
+  revalidatePath("/s/[shopSlug]", "page");
 }
 
 // Find-or-create a collection per distinct name; returns name(lowercased) → id.
