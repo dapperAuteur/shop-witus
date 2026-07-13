@@ -6,6 +6,13 @@ const schema = z.object({
   DATABASE_URL: z.string().url(),
   BETTER_AUTH_SECRET: z.string().min(32),
   BETTER_AUTH_URL: z.string().url(),
+  // "Sign in with WitUS" — ecosystem OIDC client against the accounts.witus.online
+  // IdP. Optional: the SSO provider + button stay off until CLIENT_ID is set, so a
+  // missing value never breaks the build or the magic-link flow. The redirect URI
+  // the IdP expects: {BETTER_AUTH_URL}/api/auth/oauth2/callback/witus.
+  WITUS_OIDC_CLIENT_ID: z.string().optional(),
+  WITUS_OIDC_CLIENT_SECRET: z.string().optional(),
+  WITUS_OIDC_DISCOVERY_URL: z.string().url().optional(),
   MAILGUN_API_KEY: z.string().optional(),
   MAILGUN_DOMAIN: z.string().optional(),
   MAILGUN_REGION: z.enum(["us", "eu"]).default("us"),
@@ -53,6 +60,9 @@ const input = {
     process.env.BETTER_AUTH_SECRET ?? (allowDevDefaults ? devPlaceholders.BETTER_AUTH_SECRET : undefined),
   BETTER_AUTH_URL:
     process.env.BETTER_AUTH_URL ?? (allowDevDefaults ? devPlaceholders.BETTER_AUTH_URL : undefined),
+  WITUS_OIDC_CLIENT_ID: process.env.WITUS_OIDC_CLIENT_ID,
+  WITUS_OIDC_CLIENT_SECRET: process.env.WITUS_OIDC_CLIENT_SECRET,
+  WITUS_OIDC_DISCOVERY_URL: process.env.WITUS_OIDC_DISCOVERY_URL,
   MAILGUN_API_KEY: process.env.MAILGUN_API_KEY,
   MAILGUN_DOMAIN: process.env.MAILGUN_DOMAIN,
   MAILGUN_REGION: process.env.MAILGUN_REGION,
@@ -84,6 +94,8 @@ if (!parsed.success) {
 export const env = parsed.data;
 
 export const hasMailgun = Boolean(env.MAILGUN_API_KEY && env.MAILGUN_DOMAIN);
+/** True once the WitUS SSO client is provisioned — gates the provider + the button. */
+export const hasWitusSso = Boolean(env.WITUS_OIDC_CLIENT_ID);
 export const hasCloudinary = Boolean(
   env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET,
 );
