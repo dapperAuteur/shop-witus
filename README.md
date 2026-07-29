@@ -8,6 +8,10 @@ Merchants import their best-selling products — by **CSV** or by **connecting t
 
 Next.js 16 (App Router, Webpack) · React 19 · better-auth (magic link) · Drizzle ORM + Neon Postgres · Cloudinary · Tailwind v4 · TypeScript · pnpm. Mirrors `wanderlearn-app`'s stack for cross-repo familiarity.
 
+## Error monitoring
+
+Crash reporting goes to **Better Stack** through the Sentry SDK (`@sentry/nextjs`), on the server, edge, and browser runtimes. It is **off until a DSN is set**: with no `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` the SDK never initializes, sends nothing, and the app behaves exactly as it did before. Tracing and session replay are pinned at `0` (errors only). Every outgoing event runs through `src/lib/sentry-scrub.ts`, which drops the user identity, request cookies, and `authorization` / `cookie` / `set-cookie` headers, and redacts token-bearing URLs (magic links, the Wix OAuth `?code=` callback) and email addresses. See `.env.example` for the variables.
+
 ## Quickstart
 
 ```bash
@@ -35,7 +39,8 @@ Dev runs on **port 3030** (3000 is held by wanderlearn-app — BAM runs apps sid
 
 - `src/app/` — routes. `src/app/[lang]/` merchant dashboard; `src/app/embed/shop/...` the public widget (only routes with `frame-ancestors *`).
 - `src/db/schema/` — Drizzle schema (one file per domain) + barrel.
-- `src/lib/` — auth, rbac, cloudinary, actions, env.
+- `src/lib/` — auth, rbac, cloudinary, actions, env, `sentry-scrub.ts` (crash-report PII scrubber).
+- `src/instrumentation.ts` / `src/instrumentation-client.ts` + `sentry.{server,edge}.config.ts` — error monitoring wiring.
 - `plans/` — repo-local runbooks, bugs, and operator tasks (gitignored). Start with `plans/runbooks/01-shop-witus-mvp.md`.
 
 ## Conventions
