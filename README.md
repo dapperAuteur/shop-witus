@@ -12,6 +12,21 @@ Next.js 16 (App Router, Webpack) · React 19 · better-auth (magic link) · Driz
 
 Crash reporting goes to **Better Stack** through the Sentry SDK (`@sentry/nextjs`), on the server, edge, and browser runtimes. It is **off until a DSN is set**: with no `SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_DSN` the SDK never initializes, sends nothing, and the app behaves exactly as it did before. Tracing and session replay are pinned at `0` (errors only). Every outgoing event runs through `src/lib/sentry-scrub.ts`, which drops the user identity, request cookies, and `authorization` / `cookie` / `set-cookie` headers, and redacts token-bearing URLs (magic links, the Wix OAuth `?code=` callback) and email addresses. See `.env.example` for the variables.
 
+## Health check (point uptime monitors here)
+
+`GET /api/health` is the endpoint to point Better Stack (or any uptime monitor) at — **not** the homepage, which can return a cached 200 while the database is down.
+
+| State | Status | Body |
+|---|---|---|
+| Healthy | `200` | `{"ok":true,"checks":{"db":"ok"}}` |
+| Unhealthy | `503` | `{"ok":false,"error":"database_unreachable","checks":{"db":"fail"}}` |
+
+It runs the cheapest possible liveness query (`select 1`) against Neon, so a green check means the app booted **and** Postgres answered. `HEAD` works too (status only, no body). The response is never cached (`force-dynamic` + `Cache-Control: no-store`) and the check is capped at **4 seconds** (`HEALTH_TIMEOUT_MS` in `src/lib/health.ts`), so a hung database returns 503 quickly instead of stalling the monitor.
+
+Public and unauthenticated by necessity — a monitor cannot sign in — so it discloses nothing: no version, no env values, no row/order/customer data, and **never the caught error**, whose text routinely contains the full connection string including the password. Failures collapse to the single fixed token `database_unreachable`.
+
+Third-party APIs (Wix, Cloudinary, Mailgun) are deliberately **not** checked: a vendor outage is not our downtime, and polling them on every probe would add latency and burn rate-limit budget. This endpoint reports only what we own.
+
 ## Quickstart
 
 ```bash
@@ -39,7 +54,7 @@ Dev runs on **port 3030** (3000 is held by wanderlearn-app — BAM runs apps sid
 
 - `src/app/` — routes. `src/app/[lang]/` merchant dashboard; `src/app/embed/shop/...` the public widget (only routes with `frame-ancestors *`).
 - `src/db/schema/` — Drizzle schema (one file per domain) + barrel.
-- `src/lib/` — auth, rbac, cloudinary, actions, env, `sentry-scrub.ts` (crash-report PII scrubber).
+- `src/lib/` — auth, rbac, cloudinary, actions, env, `sentry-scrub.ts` (crash-report PII scrubber), `health.ts` (uptime probe behind `/api/health`).
 - `src/instrumentation.ts` / `src/instrumentation-client.ts` + `sentry.{server,edge}.config.ts` — error monitoring wiring.
 - `plans/` — repo-local runbooks, bugs, and operator tasks (gitignored). Start with `plans/runbooks/01-shop-witus-mvp.md`.
 
