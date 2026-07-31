@@ -34,6 +34,13 @@ const schema = z.object({
   INBOX_INGEST_SECRET: z.string().optional(),
   NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
   NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
+  // Error monitoring: Better Stack, ingested through the Sentry SDK (optional; the SDK is inert
+  // without a DSN, see sentry.*.config.ts and src/instrumentation*.ts). SENTRY_DSN is server-side;
+  // NEXT_PUBLIC_SENTRY_DSN is the browser DSN. The build-time SENTRY_ORG / SENTRY_PROJECT /
+  // SENTRY_AUTH_TOKEN (source-map upload) are read straight from process.env in next.config.ts.
+  SENTRY_DSN: z.string().optional(),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+  SENTRY_ENVIRONMENT: z.string().optional(),
 });
 
 const isProd = process.env.NODE_ENV === "production";
@@ -82,6 +89,9 @@ const input = {
   INBOX_INGEST_SECRET: process.env.INBOX_INGEST_SECRET,
   NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
   NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+  SENTRY_DSN: process.env.SENTRY_DSN,
+  NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT,
 };
 
 const parsed = schema.safeParse(input);
@@ -103,3 +113,5 @@ export const hasWix = Boolean(env.WIX_CLIENT_ID && env.WIX_CLIENT_SECRET);
 export const hasOutbox = Boolean(env.OUTBOX_INGEST_URL && env.OUTBOX_INGEST_SECRET);
 export const hasInbox = Boolean(env.INBOX_INGEST_URL && env.INBOX_INGEST_SECRET);
 export const hasPostHog = Boolean(env.NEXT_PUBLIC_POSTHOG_KEY);
+/** Error monitoring is wired to receive events (a DSN is set). Without it the SDK stays inert. */
+export const hasSentry = Boolean(env.SENTRY_DSN || env.NEXT_PUBLIC_SENTRY_DSN);

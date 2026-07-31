@@ -1,13 +1,22 @@
 "use client";
 
+import { useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
+
 // Catches errors in the root layout itself, so it must render its own
 // <html>/<body>. Inline styles only — Tailwind/layout aren't guaranteed here.
 export default function GlobalError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // Report the root-boundary crash for a real stack trace. No-op when no DSN is configured.
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <html lang="en">
       <body
