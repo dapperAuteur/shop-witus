@@ -6,6 +6,35 @@ const nextConfig: NextConfig = {
   // bindings get mangled by the build minifier unless externalized. Mirrors
   // wanderlearn-app's fix for `TypeError: b.mask is not a function`.
   serverExternalPackages: ["@neondatabase/serverless", "ws"],
+
+  // PostHog's endpoints use trailing slashes (/e/, /flags/, /s/). Without this, Next
+  // issues a 308 to the slashless form before the rewrite runs and ingest breaks.
+  // Required by PostHog's documented Next.js proxy setup.
+  //
+  // SIDE EFFECT worth knowing: this disables Next's automatic trailing-slash redirect
+  // for EVERY route, not just /ingest — /help/ no longer 308s to /help and both forms
+  // become reachable. See gemini/witus plans/26.
+  skipTrailingSlashRedirect: true,
+
+  async rewrites() {
+    // Reverse-proxy PostHog through our own origin. us.i.posthog.com is on uBlock
+    // Origin, Brave Shields, and Safari's tracker list, so a meaningful share of
+    // events never leave the browser — including, reliably, our own test visits.
+    // Routing ingest through shop.witus.online leaves blockers nothing to match on.
+    //
+    // Assets come from a different upstream host than ingest, hence two rules. The
+    // more specific /static rule must come first.
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+    ];
+  },
   experimental: {
     // Lets requireShopRole() throw a clean 403 via forbidden() instead of
     // silently redirecting. Requires this flag in Next 16.
