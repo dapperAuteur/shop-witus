@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { witusEndSessionEndpoint } from "@/lib/env";
 import { listUserShops, requireUser } from "@/lib/rbac";
 import { SignOutButton } from "./sign-out-button";
 
@@ -23,7 +24,9 @@ export default async function DashboardPage() {
           >
             Help
           </Link>
-          <SignOutButton />
+          {/* Resolved on the server: the client component must not read the raw env. Null
+              when this app is not a configured OIDC client → purely local sign-out. */}
+          <SignOutButton endSessionUrl={witusEndSessionEndpoint} />
         </div>
       </header>
 

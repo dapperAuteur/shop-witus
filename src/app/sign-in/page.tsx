@@ -1,9 +1,13 @@
-import { hasWitusSso } from "@/lib/env";
+import { hasWitusSso, witusSilentSsoEndpoint } from "@/lib/env";
 import { SignInForm } from "./sign-in-form";
 
 // Server component: reads the server-only `hasWitusSso` flag so the "Sign in with
 // WitUS" button only renders once the OIDC client is provisioned. The interactive
 // magic-link form + its status states live in the client SignInForm.
+//
+// `witusSilentSsoEndpoint` is resolved HERE, on the server, and handed down — the client
+// component must never read the raw env. It is null unless this app is a configured OIDC
+// client, which keeps the "Continue as <name>" probe completely dark in that case.
 export default function SignInPage() {
   return (
     <main
@@ -21,7 +25,7 @@ export default function SignInPage() {
         </p>
       </div>
 
-      <SignInForm witusSsoEnabled={hasWitusSso} />
+      <SignInForm witusSsoEnabled={hasWitusSso} witusSilentSsoUrl={witusSilentSsoEndpoint} />
     </main>
   );
 }
