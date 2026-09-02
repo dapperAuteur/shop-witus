@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  WITUS_OIDC_DISCOVERY_FALLBACK,
+  endSessionEndpointFromDiscovery,
+  silentSsoEndpointFromDiscovery,
+} from "./silent-sso";
 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -106,6 +111,40 @@ export const env = parsed.data;
 export const hasMailgun = Boolean(env.MAILGUN_API_KEY && env.MAILGUN_DOMAIN);
 /** True once the WitUS SSO client is provisioned — gates the provider + the button. */
 export const hasWitusSso = Boolean(env.WITUS_OIDC_CLIENT_ID);
+
+/**
+ * Where the sign-in page's silent "Continue as …" check asks the WitUS IdP who this browser is.
+ *
+ * `null` — the feature stays completely dark — unless the ecosystem OIDC client is actually
+ * provisioned, because an affordance the visitor cannot complete is worse than no affordance. The
+ * URL is DERIVED from the discovery URL this app already points at, so nothing new about
+ * accounts.witus.online is asserted here (authoritative-values rule). The IdP must also allow this
+ * origin with credentials, or the probe simply answers nothing and the button keeps its normal
+ * label. See src/lib/silent-sso.ts for the whole design.
+ */
+export const witusSilentSsoEndpoint: string | null = hasWitusSso
+  ? silentSsoEndpointFromDiscovery(env.WITUS_OIDC_DISCOVERY_URL ?? WITUS_OIDC_DISCOVERY_FALLBACK)
+  : null;
+
+/**
+ * Where sign-out ends the SHARED WitUS session (BAM's decision, 2026-08-30: signing out of one
+ * WitUS app signs you out of all of them). Dark under exactly the same condition as the probe: with
+ * no ecosystem OIDC client there is no shared session to end, and sign-out stays purely local.
+ *
+ * client_id IS REQUIRED, not optional. better-auth's endsession endpoint rejects a
+ * `post_logout_redirect_uri` with `invalid_request` unless the request carries either a verifiable
+ * `id_token_hint` or an explicit `client_id`. We have no id_token client-side, so we send
+ * client_id — baked in HERE, on the server, because the sign-out button is a client component and
+ * must never be handed the raw env. The caller appends `&post_logout_redirect_uri=…`.
+ */
+export const witusEndSessionEndpoint: string | null = (() => {
+  const clientId = env.WITUS_OIDC_CLIENT_ID;
+  if (!clientId) return null;
+  const base = endSessionEndpointFromDiscovery(
+    env.WITUS_OIDC_DISCOVERY_URL ?? WITUS_OIDC_DISCOVERY_FALLBACK,
+  );
+  return base ? `${base}?client_id=${encodeURIComponent(clientId)}` : null;
+})();
 export const hasCloudinary = Boolean(
   env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET,
 );

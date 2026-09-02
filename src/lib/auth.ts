@@ -5,6 +5,7 @@ import { magicLink } from "better-auth/plugins/magic-link";
 import { genericOAuth } from "better-auth/plugins";
 import { db, schema } from "@/db/client";
 import { env } from "./env";
+import { WITUS_OIDC_DISCOVERY_FALLBACK } from "./silent-sso";
 import { sendEmail } from "./mailer";
 import { createShopForNewUser } from "./shop-bootstrap";
 
@@ -39,9 +40,9 @@ export const auth = betterAuth({
             config: [
               {
                 providerId: "witus",
-                discoveryUrl:
-                  env.WITUS_OIDC_DISCOVERY_URL ??
-                  "https://accounts.witus.online/api/idp/.well-known/openid-configuration",
+                // Fallback lives in silent-sso.ts so the IdP host is asserted in exactly one
+                // place; the sign-out + "Continue as …" endpoints derive from the same value.
+                discoveryUrl: env.WITUS_OIDC_DISCOVERY_URL ?? WITUS_OIDC_DISCOVERY_FALLBACK,
                 clientId: env.WITUS_OIDC_CLIENT_ID,
                 clientSecret: env.WITUS_OIDC_CLIENT_SECRET ?? "",
                 scopes: ["openid", "email", "profile"],
