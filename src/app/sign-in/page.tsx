@@ -1,4 +1,5 @@
 import { hasWitusSso, witusSilentSsoEndpoint } from "@/lib/env";
+import { getSession } from "@/lib/rbac";
 import { SignInForm } from "./sign-in-form";
 
 // Server component: reads the server-only `hasWitusSso` flag so the "Sign in with
@@ -8,7 +9,13 @@ import { SignInForm } from "./sign-in-form";
 // `witusSilentSsoEndpoint` is resolved HERE, on the server, and handed down — the client
 // component must never read the raw env. It is null unless this app is a configured OIDC
 // client, which keeps the "Continue as <name>" probe completely dark in that case.
-export default function SignInPage() {
+//
+// It is also suppressed for someone who already has a LOCAL session — asking the IdP who
+// they are is pointless when we already know, and it would spend a cross-origin request on
+// a visitor who needs nothing. (This page deliberately still renders for them rather than
+// redirecting; that is existing behaviour and not this change's to alter.)
+export default async function SignInPage() {
+  const session = await getSession();
   return (
     <main
       id="main"
@@ -25,7 +32,10 @@ export default function SignInPage() {
         </p>
       </div>
 
-      <SignInForm witusSsoEnabled={hasWitusSso} witusSilentSsoUrl={witusSilentSsoEndpoint} />
+      <SignInForm
+        witusSsoEnabled={hasWitusSso}
+        witusSilentSsoUrl={session ? null : witusSilentSsoEndpoint}
+      />
     </main>
   );
 }
