@@ -54,14 +54,15 @@ export function Analytics({
   // posthog.__loaded means correctness does not depend on whether init sets that flag
   // synchronously — an internal detail of a minified dependency that could change in a
   // patch release and would fail silently by dropping the first pageview of every visit.
-  const [ready, setReady] = useState(false);
+  //
+  // A remount (Strict Mode, HMR) finds PostHog already initialized, so the lazy
+  // initializer starts `ready` as true instead of setting it inside the effect, which
+  // would cost an extra render (react-hooks/set-state-in-effect).
+  const [ready, setReady] = useState(() => Boolean(apiKey) && posthog.__loaded === true);
 
   useEffect(() => {
     if (!apiKey) return;
-    if (posthog.__loaded) {
-      setReady(true);
-      return;
-    }
+    if (posthog.__loaded) return;
 
     posthog.init(apiKey, {
       api_host: apiHost,
