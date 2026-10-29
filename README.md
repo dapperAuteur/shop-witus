@@ -27,11 +27,14 @@ Two behaviours ride on top of it:
   establishes identity. A one-shot marker (`sessionStorage` `witus.sso.attempted`, plus a
   `?sso=tried` query param for browsers with no usable storage) stops a stale IdP session from
   looping the visitor between the sign-in page and the IdP.
-- **Global sign-out.** Signing out of Shop.WitUS signs you out of *every* WitUS app (BAM, 2026-08-30),
-  so the dashboard button reads **"Sign out of WitUS"**. The local session is destroyed **first**,
-  then the browser is handed to the IdP's `oauth2/endsession` — that order is the safety property: if
-  the IdP is unreachable or refuses, the person is still signed out here. Without ecosystem SSO
-  configured the button stays plain **"Sign out"** and stays purely local.
+- **Sign out vs. sign out of WitUS everywhere** (BAM, 2026-10-29). **"Sign out"** ends only your
+  Shop.WitUS session and goes to `/sign-in`; your WitUS session and other WitUS apps stay signed in,
+  so the next "Sign in with WitUS" goes straight in. When ecosystem SSO is configured, a second
+  control, **"Sign out of WitUS everywhere"**, ends the Shop.WitUS session **first**, then hands the
+  browser to the IdP's `oauth2/endsession` to end the WitUS session (that order is the safety
+  property: if the IdP is unreachable or refuses, you are still signed out here). Other WitUS apps
+  stay signed in until you sign out of them; the help text under the control says so. Without
+  ecosystem SSO configured only "Sign out" appears.
 
 Every IdP URL is derived from `WITUS_OIDC_DISCOVERY_URL` (see `src/lib/silent-sso.ts`), so the IdP
 host is asserted in exactly one place.

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { witusEndSessionEndpoint } from "@/lib/env";
 import { listUserShops, requireUser } from "@/lib/rbac";
-import { SignOutButton } from "./sign-out-button";
+import { SignOutButton, SignOutEverywhereButton } from "./sign-out-button";
 
 export default async function DashboardPage() {
   const user = await requireUser();
@@ -17,16 +17,18 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Your shops</h1>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">Signed in as {user.email}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-start justify-end gap-2">
           <Link
             href="/help"
             className="inline-flex min-h-11 items-center justify-center rounded-md px-3 text-sm font-medium text-zinc-600 hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:text-zinc-300 dark:hover:bg-white/5"
           >
             Help
           </Link>
-          {/* Resolved on the server: the client component must not read the raw env. Null
-              when this app is not a configured OIDC client → purely local sign-out. */}
-          <SignOutButton endSessionUrl={witusEndSessionEndpoint} />
+          {/* "Sign out" leaves only this app (BAM, 2026-10-29, witus task 128 option (b)). */}
+          <SignOutButton />
+          {/* Resolved on the server: the client component must not read the raw env. Null when
+              this app is not a configured OIDC client, and then the control does not render. */}
+          <SignOutEverywhereButton endSessionUrl={witusEndSessionEndpoint} />
         </div>
       </header>
 
