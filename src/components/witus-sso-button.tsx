@@ -90,8 +90,8 @@ export function WitusSsoButton({ silentCheckUrl = null }: { silentCheckUrl?: str
     writeAttempted();
     const origin = window.location.origin;
     void authClient.signIn
-      .oauth2({
-        providerId: "witus",
+      .social({
+        provider: "witus",
         callbackURL: `${origin}/dashboard`,
         // The query-param half of the guard, for a browser with no usable sessionStorage. Note
         // better-auth only honours errorCallbackURL for failures AFTER it parses the OAuth state,
