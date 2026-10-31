@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
+import { getSession } from "@/lib/rbac";
 
-export default function HomePage() {
+export default async function HomePage() {
+  // A failed lookup falls back to signed out, so the header shows "Sign in" instead of nothing.
+  const session = await getSession().catch(() => null);
   return (
     <div className="flex min-h-dvh flex-col">
+      <SiteHeader signedIn={Boolean(session)} />
       <main
         id="main"
         className="mx-auto flex w-full max-w-3xl flex-1 flex-col justify-center gap-6 px-4 py-16"
