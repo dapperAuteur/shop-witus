@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
+import { getSession } from "@/lib/rbac";
 
 export const metadata: Metadata = {
   title: "Help & FAQ — Shop.WitUS",
@@ -60,9 +62,12 @@ const faqs = [
 const linkCls =
   "text-emerald-700 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:text-emerald-300";
 
-export default function HelpPage() {
+export default async function HelpPage() {
+  // A failed lookup falls back to signed out, so the header shows "Sign in" instead of nothing.
+  const session = await getSession().catch(() => null);
   return (
     <div className="flex min-h-dvh flex-col">
+      <SiteHeader signedIn={Boolean(session)} />
       <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">
         <p className="font-mono text-sm font-medium uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
           Shop.WitUS

@@ -1,3 +1,4 @@
+import { SiteHeader } from "@/components/site-header";
 import { hasWitusSso, witusSilentSsoEndpoint } from "@/lib/env";
 import { getSession } from "@/lib/rbac";
 import { SignInForm } from "./sign-in-form";
@@ -17,25 +18,28 @@ import { SignInForm } from "./sign-in-form";
 export default async function SignInPage() {
   const session = await getSession();
   return (
-    <main
-      id="main"
-      className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center gap-8 px-4 py-16"
-    >
-      <div className="flex flex-col gap-2">
-        <p className="font-mono text-sm font-medium uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
-          Shop.WitUS
-        </p>
-        <h1 className="text-3xl font-semibold tracking-tight">Sign in</h1>
-        <p className="text-zinc-600 dark:text-zinc-300">
-          Enter your email and we&apos;ll send you a one-time sign-in link. New here? Signing in
-          creates your shop automatically.
-        </p>
-      </div>
+    <div className="flex min-h-dvh flex-col">
+      <SiteHeader signedIn={Boolean(session)} />
+      <main
+        id="main"
+        className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-8 px-4 py-16"
+      >
+        <div className="flex flex-col gap-2">
+          <p className="font-mono text-sm font-medium uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+            Shop.WitUS
+          </p>
+          <h1 className="text-3xl font-semibold tracking-tight">Sign in</h1>
+          <p className="text-zinc-600 dark:text-zinc-300">
+            Enter your email and we&apos;ll send you a one-time sign-in link. New here? Signing in
+            creates your shop automatically.
+          </p>
+        </div>
 
-      <SignInForm
-        witusSsoEnabled={hasWitusSso}
-        witusSilentSsoUrl={session ? null : witusSilentSsoEndpoint}
-      />
-    </main>
+        <SignInForm
+          witusSsoEnabled={hasWitusSso}
+          witusSilentSsoUrl={session ? null : witusSilentSsoEndpoint}
+        />
+      </main>
+    </div>
   );
 }
