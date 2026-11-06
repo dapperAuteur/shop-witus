@@ -88,6 +88,25 @@ describe("where the header renders", () => {
     },
   );
 
+  // Error pages keep the app shell (witus docs/shared-ui-ux-dx.md).
+  it("the 404 page renders the header with the session and the footer", () => {
+    const src = stripComments(read("src/app/not-found.tsx"));
+    expect(src).toMatch(/<SiteHeader signedIn=\{Boolean\(session\)\} \/>/);
+    expect(src).toContain("<SiteFooter />");
+  });
+
+  it("the root error boundary renders the header (signed-out fallback) and the footer", () => {
+    const src = stripComments(read("src/app/error.tsx"));
+    expect(src).toContain("<SiteHeader signedIn={false} />");
+    expect(src).toContain("<SiteFooter />");
+  });
+
+  it("global-error carries its own home and Sign in links", () => {
+    const src = stripComments(read("src/app/global-error.tsx"));
+    expect(src).toMatch(/href="\/"/);
+    expect(src).toMatch(/href="\/sign-in"[^>]*>\s*Sign in\s*</);
+  });
+
   it.each([
     "src/app/s/[shopSlug]/page.tsx",
     "src/app/embed/shop/[shopSlug]/[collectionSlug]/page.tsx",

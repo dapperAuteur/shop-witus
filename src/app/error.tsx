@@ -1,5 +1,11 @@
 "use client";
 
+import Link from "next/link";
+import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
+
+// Error pages keep the app shell (witus docs/shared-ui-ux-dx.md). A client boundary cannot read
+// the session, so the header falls back to signed out and shows "Sign in", never nothing.
 export default function RootError({
   reset,
 }: {
@@ -7,21 +13,33 @@ export default function RootError({
   reset: () => void;
 }) {
   return (
-    <main
-      id="main"
-      className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-4 text-center"
-    >
-      <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
-      <p className="text-sm text-zinc-600 dark:text-zinc-300">
-        An unexpected error occurred. Please try again.
-      </p>
-      <button
-        type="button"
-        onClick={reset}
-        className="inline-flex min-h-11 items-center justify-center rounded-md border border-black/15 px-4 text-sm font-medium hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:border-white/20 dark:hover:bg-white/5"
+    <div className="flex min-h-dvh flex-col">
+      <SiteHeader signedIn={false} />
+      <main
+        id="main"
+        className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 py-16 text-center"
       >
-        Try again
-      </button>
-    </main>
+        <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
+        <p className="text-sm text-zinc-600 dark:text-zinc-300">
+          An unexpected error occurred. Please try again.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={reset}
+            className="inline-flex min-h-11 items-center justify-center rounded-md border border-black/15 px-4 text-sm font-medium hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:border-white/20 dark:hover:bg-white/5"
+          >
+            Try again
+          </button>
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center text-sm text-emerald-700 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current dark:text-emerald-300"
+          >
+            Go home
+          </Link>
+        </div>
+      </main>
+      <SiteFooter />
+    </div>
   );
 }
